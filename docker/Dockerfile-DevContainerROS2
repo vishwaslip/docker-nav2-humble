@@ -1,0 +1,76 @@
+FROM ubuntu:jammy
+
+# Set default to bash shell
+ENV DEBIAN_FRONTEND=noninteractive
+ENV SHELL /bin/bash
+SHELL ["/bin/bash", "-c"]
+ARG USERNAME=vscode
+ENV LANG=en_US.UTF-8
+ENV ROS_PYTHON_VERSION=3
+ENV ROS2_DISTRO=humble
+ENV ROS2_ROOT=/opt/ros/${ROS2_DISTRO}
+
+# Install necessary
+RUN apt update && apt install -y \
+        sudo        \
+        git         \
+        curl        \
+        gnupg       \
+        lsb-release \
+        locales     \
+        nano        \
+        cmake       \
+        wget        \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add ROS 2 apt repository
+RUN locale-gen en_US en_US.UTF-8 \
+    && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 \
+    && apt update && apt install -y software-properties-common \
+    && add-apt-repository universe \
+    && curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2-testing/ubuntu $(source /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
+# ROS fundamentals
+RUN apt update && apt install -y \
+        python3-flake8-docstrings \
+        python3-pip \
+        python3-pytest-cov \
+        ros-dev-tools \
+        python3-flake8-blind-except \
+        python3-flake8-builtins \
+        python3-flake8-class-newline \
+        python3-flake8-comprehensions \
+        python3-flake8-deprecated \
+        python3-flake8-import-order \
+        python3-flake8-quotes \
+        python3-pytest-repeat \
+        python3-pytest-rerunfailures
+    # && rm -rf /var/lib/apt/lists/*
+
+# Install ROS 2 from source
+RUN mkdir -p ${ROS2_ROOT}/src
+WORKDIR ${ROS2_ROOT}
+RUN vcs import --input https://raw.githubusercontent.com/ros2/ros2/humble/ros2.repos src \
+    && rosdep init \
+    && rosdep update
+RUN rosdep install --from-paths src --ignore-src -y --rosdistro humble --skip-keys "fastcdr rti-connext-dds-6.0.1 urdfdom_headers"
+RUN colcon build --merge-install\
+    && source /opt/ros/${ROS2_DISTRO}/install/setup.bash
+    # && rm -Rf /var/lib/apt/lists/*
+
+# Adding vscode user and password for user
+RUN useradd -rm -d /home/${USERNAME} -s /bin/bash -g root -G sudo -u 1000 ${USERNAME} \
+    && echo "${USERNAME}:password" | chpasswd
+
+# Now vscode user, not root anymore for security
+USER ${USERNAME}
+
+# Finishing touches
+RUN mkdir -p /home/${USERNAME}/docker-nav2-humble \
+    && echo "source /opt/ros/${ROS2_DISTRO}/install/setup.bash" >> /home/${USERNAME}/.bashrc
+
+# Setting default directory to:
+WORKDIR /home/${USERNAME}/docker-nav2-humble
+
+CMD ["bash"]

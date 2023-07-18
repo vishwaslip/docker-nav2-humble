@@ -1,0 +1,59 @@
+{
+    "name": "ROS 2",
+    "remoteUser": "${localEnv:USERNAME}",
+    "workspaceFolder": "/home/${localEnv:USERNAME}/docker-nav2-humble",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/home/${localEnv:USERNAME}/docker-nav2-humble,type=bind",
+
+    "build":{ 
+		"dockerfile":"../docker/Dockerfile-DevContainerROS2",
+		"context": "..",
+		"args": {
+			"USERNAME": "${localEnv:USERNAME}"
+		}
+	},
+    "initializeCommand": "xhost +",
+    "runArgs": [
+        "--runtime=nvidia",
+		"--gpus",
+		"all",
+        "--net=host",
+        "--volume=${localEnv:HOME}/.Xauthority:/root/.Xauthority:rw", 
+		"--privileged", 
+		"--security-opt", "apparmor:unconfined",
+        "--ipc=host"
+    ],
+
+    "containerEnv": {
+        "DISPLAY": "${localEnv:DISPLAY}"
+    },
+    
+    "mounts": [
+        "source=/dev/,target=/dev/,type=bind",
+        "source=/tmp/.X11-unix/,target=/tmp/.X11-unix/,type=bind",
+        "source=/home/${localEnv:USERNAME}/.ssh,target=/home/${localEnv:USERNAME}/.ssh,type=bind",
+		"source=/home/${localEnv:USERNAME}/.aws/,target=/home/${localEnv:USERNAME}/.aws/,type=bind"
+        
+    ],
+    // "postCreateCommand": "sudo rosdep update && sudo rosdep install --from-paths src --ignore-src -y && sudo chown -R USERNAME /home/ws/",
+    "customizations": {
+        "vscode": {
+            "extensions":[
+                "ms-vscode.cpptools",
+                "ms-vscode.cpptools-themes",
+                "ms-vscode.cpptools-extension-pack",
+                "ms-vscode.cmake-tools",
+                "ms-vscode-remote.remote-containers",
+                "ms-toolsai.jupyter",
+				"ms-toolsai.jupyter-renderers",
+				"ms-python.vscode-pylance",
+				"ms-python.python",
+                "ms-azuretools.vscode-docker",
+                "twxs.cmake",
+                "donjayamanne.python-extension-pack",
+                "eamodio.gitlens",
+                "ms-iot.vscode-ros",
+                "GitHub.copilot"
+            ]
+        }
+    }
+}

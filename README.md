@@ -11,12 +11,13 @@
 
 ## Reproducing Nav 2 Build Error
 
-1. `sudo mkdir -p /opt/ros/nav2/src && cd /opt/ros/nav2/src`
-2. `sudo git clone https://github.com/ros-planning/navigation2.git --branch humble`
-3. `source /opt/ros/${ROS2_DISTRO}/install/setup.bash && cd /opt/ros/nav2`
-4. `vcs import src < /path/to/nav2_humble_dependencies.repos` *Current tools/underlay.repos file in humble does not work.
-5. `rosdep update && rosdep install -y --ignore-src --from-paths src`
-6. `colcon build --merge-install`
+1. `sudo su`
+2. `mkdir -p /opt/ros/nav2/src && cd /opt/ros/nav2/src`
+3. `git clone https://github.com/ros-planning/navigation2.git --branch humble`
+4. `source /opt/ros/${ROS2_DISTRO}/install/setup.bash && cd /opt/ros/nav2`
+5. `vcs import src < /path/to/nav2_humble_dependencies.repos` *Current tools/underlay.repos file in humble does not work.
+6. `rosdep update && rosdep install -y --ignore-src --from-paths src`
+7. `colcon build --merge-install`
 
 ### Expected behavior
 
